@@ -1,0 +1,15 @@
+
+<nav>
+  <button *ngIf="!(authService.user | async)" routerLink="login">
+      Login
+    </button>
+    <button *ngIf="authService.user | async" (click)="logout()">
+      Logout
+    </button>
+</nav>
+
+<h1>{{title}}</h1>
+
+<br/><br/>
+
+<router-outlet></router-outlet>

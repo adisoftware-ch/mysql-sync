@@ -1,0 +1,20 @@
+<div *ngIf="friend">
+  <h2>My dear Friend: {{friend.name}}</h2>
+  <br/>
+
+  <h3>Meta-Data</h3>
+  <pre>
+    id:      {{friend.id}}
+    creator: {{friend.creator}}
+    version: {{friend.version}}
+  </pre>
+
+  <div>
+    <label>edit&nbsp;name:
+      <input [(ngModel)]="friend.name" placeholder="name"/>
+    </label>
+  </div>
+
+  <button (click)="goBack()">go back</button>
+  <button (click)="save()">save</button>
+</div>

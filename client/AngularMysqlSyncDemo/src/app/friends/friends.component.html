@@ -1,0 +1,22 @@
+<div *ngIf="authService.user | async">
+  <h2>My dear Friends</h2>
+
+  <div>
+    <label>Friend name:
+      <input #friendName />
+    </label>
+    <button (click)="addFriend(friendName.value)">
+      add
+    </button>
+  </div>
+
+  <ul class="friends">
+    <li *ngFor="let friend of friends | async">
+      <a routerLink="/detail/{{friend.id}}">
+        <span class="badge">{{friend.id}}</span> {{friend.name}}
+      </a>
+      <button class="delete" title="delete friend"
+        (click)="deleteFriend(friend)">x</button>
+    </li>
+  </ul>
+</div>

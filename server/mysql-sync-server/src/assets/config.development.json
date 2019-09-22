@@ -1,0 +1,30 @@
+{
+    "server_port": 3000,
+    "maxSocketListeners": 20,
+    "secure": false,
+    "secureconfig": {
+        "key": "",
+        "cert": "",
+        "passphrase": ""
+    },
+    "mysql": {
+        "connectionLimit"   : 10,
+        "host"              : "...",
+        "user"              : "...",
+        "password"          : "...",
+        "database"          : "friends"
+    },
+    "firebaseAuth": {
+        "forceAuth"         : true,
+        "emailVerification" : false,
+        "firebase": {
+            "apiKey"            : "...",
+            "authDomain"        : "...",
+            "databaseURL"       : "...",
+            "projectId"         : "...",
+            "storageBucket"     : "",
+            "messagingSenderId" : "...",
+            "appId":            "..."
+        }
+    }
+}
