@@ -5,7 +5,7 @@
     <label>Friend name:
       <input #friendName />
     </label>
-    <button (click)="addFriend(friendName.value)">
+    <button (click)="addFriend(friendName.value); friendName.value=''">
       add
     </button>
   </div>

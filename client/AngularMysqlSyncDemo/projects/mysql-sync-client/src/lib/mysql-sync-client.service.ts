@@ -4,7 +4,7 @@
 // copy lib package from ./dist to ./node_modules of target project
 
 import { Injectable, Inject } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, BehaviorSubject } from 'rxjs';
 import { delay } from 'rxjs/operators';
 
 // npm i socket.io-client
@@ -58,9 +58,13 @@ export class MysqlSyncClientService {
 
   private observableMap: Map<string, Observable<IDataObject[]>>;
 
-  private usersConnected: number;
+  private usersConnected: BehaviorSubject<number>;
 
   private usersConnectedObservable: Observable<number>;
+
+  private error: BehaviorSubject<any>;
+
+  private errorObservable: Observable<any>;
 
   private dataProvider: IMySqlSyncConfig['dataProvider'];
 
@@ -69,8 +73,11 @@ export class MysqlSyncClientService {
     this.objectMap = new Map<string, Array<IDataObject>>();
     this.observableMap = new Map<string, Observable<IDataObject[]>>();
 
-    this.usersConnected = 0;
-    this.usersConnectedObservable = of(this.usersConnected);
+    this.usersConnected = new BehaviorSubject(0);
+    this.usersConnectedObservable = this.usersConnected.asObservable();
+
+    this.error = new BehaviorSubject('');
+    this.errorObservable = this.error.asObservable();
 
     this.dataProvider = environment.dataProvider;
 
@@ -92,6 +99,10 @@ export class MysqlSyncClientService {
 
   public getUsersConnected(): Observable<number> {
     return this.usersConnectedObservable;
+  }
+
+  public getErrorMessages(): Observable<any> {
+    return this.errorObservable;
   }
 
   // ---
@@ -181,7 +192,13 @@ export class MysqlSyncClientService {
     this.socket.on('sockets:connected', (msg: number) => {
       console.log(`receiving update on users connected: ${msg}`);
 
-      this.usersConnected = msg;
+      this.usersConnected.next(msg);
+    });
+
+    this.socket.on('error', (msg: any) => {
+      console.log(`receiving error message from server: ${msg}`);
+
+      this.error.next(msg);
     });
   }
 

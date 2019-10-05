@@ -22,6 +22,10 @@ export class FriendService {
     return this.db.getUsersConnected();
   }
 
+  public getErrorMessages(): Observable<any> {
+    return this.db.getErrorMessages();
+  }
+
   // ---
   // CRUD
   // ---

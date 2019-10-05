@@ -1,225 +1,304 @@
 import mysql = require('mysql');
 
 export interface IDataObject {
-  id: string;
-  version: string;
+    id: string;
+    version: string;
 }
 
 export interface ITransferObject {
-  table: string;
-  id?: string;
-  condition?: string;
-  attributes?: IKeyValue[];
-  value?: IDataObject;
-  values?: IDataObject[];
+    table: string;
+    id?: string;
+    condition?: string;
+    attributes?: IKeyValue[];
+    value?: IDataObject;
+    values?: IDataObject[];
 }
 
 export interface IKeyValue {
-  key: string;
-  value: any;
+    key: string;
+    value: any;
 }
 
-export const createEntity = function(data: ITransferObject, mysql: any, pool: mysql.Pool, callback: any) {
-    pool.getConnection(function(err,connection){
+export const createEntity = function (uid: string, data: ITransferObject, pool: mysql.Pool, callback: any) {
+    // if authentication is turned on, store uid with every new record
+    if (uid) {
+        if (!data.attributes) {
+            data.attributes = new Array<IKeyValue>();
+        }
+        data.attributes.push({
+            key: 'creator',
+            value: uid
+        });
+    }
+
+    getConnection(pool, function (err, connection) {
         if (err) {
             console.error(err);
-            if (connection) {
-                connection.release();
-            }
-            return callback(true,err);
+            callback(true, err);
         } else {
-            var sqlQuery;
-            var sqlQuery1 = 'INSERT INTO ?? (';
-            var sqlQuery2 = ') VALUES (';
-            var sqlQuery3 = ')';
+            checkCreate(uid, data.table, connection, function(err: boolean, result: any) {
+                if (!err) {
+                    if (result) {
+                        var sqlQuery;
+                        var sqlQuery1 = 'INSERT INTO ?? (';
+                        var sqlQuery2 = ') VALUES (';
+                        var sqlQuery3 = ')';
 
-            var inserts =[data.table];
+                        var inserts = [data.table];
 
-            for (let i=0; data.attributes && i<data.attributes.length; i++) {
-                sqlQuery1 =  sqlQuery1 + (i > 0 ? ',' : '') + data.attributes[i].key;
-                sqlQuery2 =  sqlQuery2 + (i > 0 ? ',?' : '?');
-                inserts.push(data.attributes[i].value);
-            }
+                        for (let i = 0; data.attributes && i < data.attributes.length; i++) {
+                            sqlQuery1 = sqlQuery1 + (i > 0 ? ',' : '') + data.attributes[i].key;
+                            sqlQuery2 = sqlQuery2 + (i > 0 ? ',?' : '?');
+                            inserts.push(data.attributes[i].value);
+                        }
 
-            sqlQuery = mysql.format(sqlQuery1 + sqlQuery2 + sqlQuery3, inserts);
+                        sqlQuery = mysql.format(sqlQuery1 + sqlQuery2 + sqlQuery3, inserts);
 
-            connection.query(sqlQuery, function(err, result) {  
-                if (err) {
-                    return callback(true,null);
+                        console.info('db.create with sql:', sqlQuery);
+
+                        connection.query(sqlQuery, function (err, result) {
+                            if (err) {
+                                pool.releaseConnection(connection);
+                                callback(true, err);
+                            } else {
+                                sqlQuery = "SELECT * FROM ?? WHERE ID = ?";
+                                inserts = [data.table, result.insertId];
+                                sqlQuery = mysql.format(sqlQuery, inserts);
+                                connection.query(sqlQuery)
+                                    .on('result', function (data) {
+                                        console.log(data);
+                                        callback(false, data);
+                                    })
+                            }
+                        });
+                    } else {
+                        callback(true, 'user ' + uid + ' is not allowed to create entity of type ' + data.table);
+                    }
                 } else {
-                    sqlQuery = "SELECT * FROM ?? WHERE ID = ?";
-                    inserts = [data.table, result.insertId];
-                    sqlQuery = mysql.format(sqlQuery,inserts);
-                    connection.query(sqlQuery)
-                        .on('result', function(data){
-                            console.log(data);
-                            callback(false, data);
-                        })
+                    callback(true, result);
                 }
             });
         }
-        connection.on('error', function(err) {
-            return callback(true,null);
-        });
-        connection.release();
     });
 };
 
-export const updateEntity = function(uid: string, data: ITransferObject, mysql: any, pool: mysql.Pool, callback: any) {
-    pool.getConnection(function(err,connection){
+export const queryEntity = function (uid: string, data: ITransferObject, pool: mysql.Pool, callback: any) {
+    getConnection(pool, function (err, connection) {
         if (err) {
             console.error(err);
-            if (connection) {
-                connection.release();
-            }
-            return callback(true,err);
+            callback(true, err);
+        } else {
+            var resultArray = new Array();
+
+            getReadQuery(uid, data, connection, function (err: boolean, result: any) {
+                if (!err) {
+                    var sqlQuery = result;
+
+                    console.info('db.read with sql:', sqlQuery);
+
+                    connection.query(sqlQuery)
+                        .on('result', function (row) {
+                            resultArray.push(row);
+                        })
+                        .on('end', function () {
+                            callback(false, resultArray);
+                        })
+                } else {
+                    callback (true, err);
+                }
+            });
+        }
+    });
+};
+
+export const updateEntity = function (uid: string, data: ITransferObject, pool: mysql.Pool, callback: any) {
+    getConnection(pool, function (err, connection) {
+        if (err) {
+            console.error(err);
+            callback(true, err);
         } else if (data.id) {
-            checkRules(data.id, uid, data.table, 'update', mysql, pool, function(err: boolean, valid: boolean) {
-                if (err) {
-                    connection.release();
-                    return callback(true,null);
-                } else if (valid && data.id) {
-                    var sqlQuery = 'UPDATE ?? SET ';
-                    var inserts =[data.table];
+            getUpdateQuery(uid, data, connection, function(err: boolean, result: any) {
+                if (!err) {
+                    var sqlQuery = result;
 
-                    for (let i=0; data.attributes && i<data.attributes.length; i++) {
-                        sqlQuery =  sqlQuery + (i > 0 ? ',' : '') + data.attributes[i].key + '=?';
-                        inserts.push(data.attributes[i].value);
-                    }
-                    sqlQuery = sqlQuery + 'WHERE id=?'
-                    inserts.push(data.id);
-                    
-                    sqlQuery = mysql.format(sqlQuery,inserts);
+                    console.info('db.update with sql:', sqlQuery);
 
-                    connection.query(sqlQuery, function(err, result) {  
+                    connection.query(sqlQuery, function (err, _RESULT) {
                         if (err) {
-                            connection.release();
-                            return callback(true,null);
+                            callback(true, err);
                         } else if (data.id) {
-                            sqlQuery = "SELECT * FROM ?? WHERE ID = ?";
-                            inserts = [data.table, data.id];
-                            sqlQuery = mysql.format(sqlQuery,inserts);
+                            sqlQuery = 'SELECT * FROM ?? WHERE ID = ?';
+                            var inserts = [data.table, data.id];
+                            sqlQuery = mysql.format(sqlQuery, inserts);
                             connection.query(sqlQuery)
-                                .on('result', function(data){
-                                    connection.release();
-                                    return callback(false, data);
+                                .on('result', function (data) {
+                                    callback(false, data);
                                 })
                         }
                     });
+                } else {
+                    callback(true, result);
                 }
             });
         }
-        connection.on('error', function(err) {
-            connection.release();
-            return callback(true,null);
-        });
     });
 };
 
-export const queryEntity = function(data: ITransferObject, mysql: any, pool: mysql.Pool, callback: any) {
-    pool.getConnection(async function(err,connection){
+export const deleteEntity = async function (uid: string, data: ITransferObject, pool: mysql.Pool, callback: any) {
+    getConnection(pool, function (err, connection) {
         if (err) {
             console.error(err);
-            if (connection) {
-                connection.release();
-            }
-            return callback(true,err);
-        } else {
-            var result = new Array();
-
-            var sqlQuery = 'SELECT * FROM ??' + (data.condition ? ' WHERE ' + data.condition : '');
-            var inserts = [data.table];
-
-            sqlQuery = mysql.format(sqlQuery,inserts);
-
-            console.log(sqlQuery);
-
-            connection.query(sqlQuery)
-                .on('result', function(row) {
-                        result.push(row)
-                })
-                .on('end', function() {
-                    callback(false, result);
-                })
-        }
-        connection.on('error', function(err) {
-            return callback(true, err);
-        });
-        connection.release();
-    });
-};
-
-export const deleteEntity = async function(uid: string, data: ITransferObject, mysql: any, pool: mysql.Pool, callback: any) {
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            console.error(err);
-            if (connection) {
-                connection.release();
-            }
-            return callback(true,err);
+            callback(true, err);
         } else if (data.id) {
-            checkRules(data.id, uid, data.table, 'delete', mysql, pool, function(err: boolean, valid: boolean) {
-                if (err) {
-                    connection.release();
-                    return callback(true,null);
-                } else if (valid && data.id) {
-                    var sqlQuery = 'DELETE FROM ?? WHERE id = ?';
-                    var inserts =[data.table, data.id];
-                    sqlQuery = mysql.format(sqlQuery,inserts);
+            getDeleteQuery(uid, data, connection, function (err: boolean, result: any) {
+                if (!err) {
+                    var sqlQuery = result;
 
-                    connection.query(sqlQuery, function(err, result) {  
-                        connection.release();
+                    console.info('db.delete with sql:', sqlQuery);
+
+                    connection.query(sqlQuery, function (err, _RESULT) {
                         if (err) {
-                            return callback(true, null);
+                            callback(true, err);
                         } else {
-                            return callback(false, null);
+                            callback(false, null);
                         }
                     });
+                } else {
+                    callback(true, result);
                 }
             });
         }
-        connection.on('error', function(err) {
-            connection.release();
-            return callback(true,null);
-        });
     });
 };
 
-const checkRules = function(id: string, uid: string, table: string, method: string, mysql: any, pool: mysql.Pool, callback: any) {
-    if (uid) {
-        pool.getConnection(function(err,connection){
-            if (err) {
-                console.error('db.checkRules:', err);
-                if (connection) {
-                    connection.release();
-                }
-                return callback(true, false);
-            } else {
-                var sqlQuery = 'SELECT ?? FROM rules WHERE `table` = ?';
-                var inserts = [method, table];
+const checkCreate = function(uid: string, table: string, connection: mysql.PoolConnection, callback: any) {
+    getConstraintQuery('create', table, connection, function(err: boolean, result: any) {
+        if (!err) {
+            if (result && result.length > 0) {
+                var sqlQuery = result;
+                var inserts = [uid];
 
-                sqlQuery = mysql.format(sqlQuery,inserts);
+                sqlQuery = mysql.format(sqlQuery, inserts);
 
-                connection.query(sqlQuery).on('result', function(rule) {
-                    console.log(rule);
+                console.info('checkCreate:', sqlQuery);
 
-                    inserts = [id, uid];
-                    sqlQuery = mysql.format(rule[method],inserts);
-
-                    connection.query(sqlQuery).on('result', function(data) {
-                        connection.release();
-                        return callback(false, data != null);
-                    });
+                connection.query(sqlQuery).on('result', function (_RESULT) {
+                    console.info('checkCreate: checked access granted');
+                    return callback(false, true);
                 });
+
+                console.info('checkCreate: access denied');
+                callback(false, false);
+            } else {
+                console.warn('checkCreate: unchecked access granted - please provide a security rule');
+                callback(false, true);
             }
-            connection.on('error', function(err) {
-                console.error('db.checkRules:', err);
-                if (connection)
-                    connection.release();
-                return callback(true, false);
-            });
+        } else {
+            callback(true, result);
+        } 
+    });
+}
+
+const getReadQuery = function(uid: string, data: ITransferObject, connection: mysql.PoolConnection, callback: any) {
+    var sqlQuery = 'SELECT * FROM ??' + (data.condition ? ' WHERE ' + data.condition : '');
+    var inserts = [data.table];
+
+    getConstraintQuery('read', data.table, connection, function(err: boolean, result: any) {
+        if (!err) {
+            if (result && result.length > 0) {
+                sqlQuery = sqlQuery + ((data.condition) ? ' AND' : ' WHERE') + ' id IN (SELECT * FROM (' + result + ')tblTmp)';
+                inserts.push(uid);
+            }
+            callback(false, mysql.format(sqlQuery, inserts));
+        } else {
+            callback(true, result);
+        } 
+    });
+}
+
+const getUpdateQuery = function(uid: string, data: ITransferObject, connection: mysql.PoolConnection, callback: any) {
+    if (data.id) {
+        var sqlQuery = 'UPDATE ?? SET ';
+        var inserts = [data.table];
+
+        for (let i = 0; data.attributes && i < data.attributes.length; i++) {
+            sqlQuery = sqlQuery + (i > 0 ? ',' : '') + data.attributes[i].key + '=?';
+            inserts.push(data.attributes[i].value);
+        }
+        sqlQuery = sqlQuery + 'WHERE id=?'
+        inserts.push(data.id);
+
+        getConstraintQuery('update', data.table, connection, function(err: boolean, result: any) {
+            if (!err) {
+                if (result && result.length > 0) {
+                    sqlQuery = sqlQuery + ' AND id IN (SELECT * FROM(' + result + ')tblTmp)';
+                    inserts.push(uid);
+                }
+                callback(false, mysql.format(sqlQuery, inserts));
+            } else {
+                callback(true, result);
+            } 
         });
     } else {
-        return callback(false, true);
+        callback(true, 'data.id was not present but is mandatory for update statements');
+    }
+}
+
+const getDeleteQuery = function(uid: string, data: ITransferObject, connection: mysql.PoolConnection, callback: any) {
+    if (data.id) {
+        var sqlQuery = 'DELETE FROM ?? WHERE id = ?';
+        var inserts = [data.table, data.id];
+
+        getConstraintQuery('delete', data.table, connection, function(err: boolean, result: any) {
+            if (!err) {
+                if (result && result.length > 0) {
+                    sqlQuery = sqlQuery + ' AND id IN (SELECT * FROM (' + result + ')tblTmp)';
+                    inserts.push(uid);
+                }
+                callback(false, mysql.format(sqlQuery, inserts));
+            } else {
+                callback(true, result);
+            } 
+        });
+    } else {
+        callback(true, 'data.id was not present but is mandatory for delete statements');
+    }
+}
+
+const getConstraintQuery = function (method: string, table: string, connection: mysql.PoolConnection, callback: any) {
+    var sqlQuery = 'SELECT ?? FROM rules WHERE `table` = ?';
+    var inserts = [method, table];
+
+    sqlQuery = mysql.format(sqlQuery, inserts);
+
+    connection.query(sqlQuery).on('result', function (rule) {
+        console.log(rule[method]);
+
+        if (rule[method]) {
+            return callback(false, rule[method]);
+        }
+
+        callback(false, '');
+    });
+}
+
+const getConnection = function(pool: mysql.Pool, callback: (error: mysql.MysqlError, connection: mysql.PoolConnection) => void) {
+    pool.getConnection(function(err, connection) {
+
+        connection.on('error', function (err) {
+            console.error('an sql connection error happened!', err);
+            callback(err, connection);
+        });
+
+        callback(err, connection);
+
+        releaseConnection(pool, connection);
+    });
+};
+
+const releaseConnection = function (pool: mysql.Pool, connection: mysql.PoolConnection) {
+    if (connection) {
+        pool.releaseConnection(connection);
+        console.info('successfully released db connection');
     }
 }

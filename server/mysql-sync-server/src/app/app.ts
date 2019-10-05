@@ -40,10 +40,10 @@ export const start = (port: number): Promise<void> => {
     })
     .on('connection', function(socket){
         // Let all sockets know how many are connected
-        io.sockets.emit('sockets:connected', io.sockets.clients.length)
+        io.sockets.emit('sockets:connected', Object.keys(io.sockets.connected).length);
     
         socket.on('disconnect', function() {
-            io.sockets.emit('sockets:connected', io.sockets.clients.length)
+            io.sockets.emit('sockets:connected', Object.keys(io.sockets.connected).length)
         })
 
         socket.on('init', function() {
@@ -56,86 +56,13 @@ export const start = (port: number): Promise<void> => {
     
         socket.on('create', function(data: db.ITransferObject) {
             if (pool) {
-                if (data.attributes) {
-
-                    // if authentication is turned on, store uid with every new record
-                    if (socket.client.request.uid) {
-                        data.attributes.push({
-                            key: 'creator',
-                            value: socket.client.request.uid
-                        });
-                    }
-
-                    db.createEntity(data, mysql, pool, function(error: any,result: any) {
-                        if (error) {
-                            io.sockets.emit('error', '' + result);
-                        } else {
-                            console.log('new ' + data.table + ' added!');
-                            // On successful addition, emit event for client.
-                            io.sockets.emit('create:response', {
-                                table: data.table,
-                                condition: 'create',
-                                value: result
-                            });
-                        }
-                    });
-                } else {
-                    io.emit('error', 'trying to create a new entity without any attributes');
-                }
-            } else {
-                io.emit('error', 'database connection pool not initialized');
-            }
-        })
-
-        socket.on('read', function(data: db.ITransferObject) {
-            if (pool) {
-                db.queryEntity(data, mysql, pool, function(error: any,result: any) {
+                db.createEntity(socket.client.request.uid, data, pool, function(error: any,result: any) {
                     if (error) {
-                        io.sockets.emit('error', '' + result);
+                        console.error('error in db.create:', result);
+                        socket.emit('error', '' + result);
                     } else {
-                        console.log('read from ' + data.table + ':condition=' + data.condition);
-                        console.log(result);
-                        // On successful addition, emit event for client.
-                        io.sockets.emit('read:response', {
-                            table: data.table,
-                            condition: data.condition,
-                            values: result
-                        });
-                    }
-                });
-            } else {
-                io.emit('error', 'database connection pool not initialized');
-            }
-        })
-
-        socket.on('update', function(data: db.ITransferObject) {
-            if (pool) {
-                db.updateEntity(socket.client.request.uid, data, mysql, pool, function(error: any,result: any) {
-                    if (error) {
-                        io.sockets.emit('error', '' + result);
-                    } else {
-                        console.log('updated ' + data.table + ':id=' + data.id);
-                        // On successful addition, emit event for client.
-                        io.sockets.emit('update:response', {
-                            table: data.table,
-                            condition: 'update',
-                            value: result
-                        });
-                    }
-                });
-            } else {
-                io.emit('error', 'database connection pool not initialized');
-            }
-        })
-
-        socket.on('delete', function(data: db.ITransferObject) {
-            if (pool) {
-                db.deleteEntity(socket.client.request.uid, data, mysql, pool, function(error: any,result: any) {
-                    if (error) {
-                        io.sockets.emit('error', '' + result);
-                    } else {
-                        console.log('deleted ' + data.table + ':id=' + data.id);
-                        // On successful addition, emit event for client.
+                        console.log('new ' + data.table + ' added!');
+                        // On successful addition, emit event for all clients
                         io.sockets.emit('create:response', {
                             table: data.table,
                             condition: 'create',
@@ -144,13 +71,77 @@ export const start = (port: number): Promise<void> => {
                     }
                 });
             } else {
-                io.emit('error', 'database connection pool not initialized');
+                socket.emit('error', 'database connection pool not initialized');
+            }
+        })
+
+        socket.on('read', function(data: db.ITransferObject) {
+            if (pool) {
+                db.queryEntity(socket.client.request.uid, data, pool, function(error: any,result: any) {
+                    if (error) {
+                        console.error('error in db.read:', result);
+                        socket.emit('error', '' + result);
+                    } else {
+                        console.log('read from ' + data.table + ':condition=' + data.condition);
+                        console.log(result);
+                        // On successful addition, emit event for requesting client
+                        socket.emit('read:response', {
+                            table: data.table,
+                            condition: data.condition,
+                            values: result
+                        });
+                    }
+                });
+            } else {
+                socket.emit('error', 'database connection pool not initialized');
+            }
+        })
+
+        socket.on('update', function(data: db.ITransferObject) {
+            if (pool) {
+                db.updateEntity(socket.client.request.uid, data, pool, function(error: any,result: any) {
+                    if (error) {
+                        console.error('error in db.update:', result);
+                        socket.emit('error', '' + result);
+                    } else {
+                        console.log('updated ' + data.table + ':id=' + data.id);
+                        // On successful addition, emit event for all clients
+                        io.sockets.emit('update:response', {
+                            table: data.table,
+                            condition: 'update',
+                            value: result
+                        });
+                    }
+                });
+            } else {
+                socket.emit('error', 'database connection pool not initialized');
+            }
+        })
+
+        socket.on('delete', function(data: db.ITransferObject) {
+            if (pool) {
+                db.deleteEntity(socket.client.request.uid, data, pool, function(error: any,result: any) {
+                    if (error) {
+                        console.error('error in db.delete:', result);
+                        socket.emit('error', '' + result);
+                    } else {
+                        console.log('deleted ' + data.table + ':id=' + data.id);
+                        // On successful addition, emit event for all clients
+                        io.sockets.emit('create:response', {
+                            table: data.table,
+                            condition: 'create',
+                            value: result
+                        });
+                    }
+                });
+            } else {
+                socket.emit('error', 'database connection pool not initialized');
             }
         })
 
     })
 
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve, _REJECT) => {
         server.listen(port, resolve);
     });
 };
@@ -191,6 +182,6 @@ async function verifyToken(socket: socketIo.Socket, next: any) {
 process.setMaxListeners(environment().maxSocketListeners);
 
 process.on('uncaughtException', function (err) {
-    console.error('an uncaught exception happened!');
+    console.error('mysql-sync-server, app.ts:','an uncaught exception happened!');
     console.error(err.stack);
 });

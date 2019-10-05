@@ -1,15 +1,30 @@
-
 <nav>
   <button *ngIf="!(authService.user | async)" routerLink="login">
-      Login
-    </button>
-    <button *ngIf="authService.user | async" (click)="logout()">
-      Logout
-    </button>
+    Login
+  </button>
+  <button *ngIf="authService.user | async" (click)="logout()">
+    Logout
+  </button>
 </nav>
 
 <h1>{{title}}</h1>
+<br />
 
-<br/><br/>
+<h3>Additional Info</h3>
+<div *ngIf="authService.user | async">
+  <pre>
+    users connected:      {{usersConnected | async}}
+    server side error:    {{errorMessages | async}}
+  </pre>
+</div>
+  
+<div *ngIf="!(authService.user | async)">
+  <pre>
+  users connected:      please log in to see how many users are connected
+  server side error:    {{errorMessages | async}}
+  </pre>
+</div>
+
+<br />
 
 <router-outlet></router-outlet>
