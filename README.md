@@ -18,7 +18,7 @@ mysql-sync consists of:
 
 ## Running the Demo Application
 
-To run the demo application on your local machine, follow these steps:
+To run the demo application on your local machine, follow these steps. A running demo application will be provided soon on adisoftware.ch
 
 ### Install and Prepare MySQL
 
@@ -26,7 +26,12 @@ As mysql-sync handels MySQL database usage, a running instance of MySQL is requi
 
 Note: The server component has to be able to connect to MySQL. There are no direct database connections from client side!
 
-Prepare following tables:
+Prepare database `friends` with following tables:
+```
+
+```
+
+Provide some simple access rules:
 ```
 
 ```
@@ -79,3 +84,50 @@ Server-side configuration resides at `./server/mysql-sync-server/src/assets/conf
     }
 }
 ```
+
+### Configure Client
+
+Client-side configuration resides at `./client/AngularMysqlSyncDemo/src/environments/environment.ts` resp. `environment.prod.ts`. Structure is as follows:
+
+
+```
+export const environment = {
+  production: false,                                -> if true, config which is used in production build
+  dataProvider: {
+    requireAuthToken  : true,                       -> if true, authentication is expected
+    secure            : false,                      -> if true, connection to websocket server is handled via wss. provide secureconfig, if so
+    socketurl         : 'http://localhost:3000',    -> url of mysql-sync-server
+    secureconfig      : {
+      ca : ''
+    }
+  },
+  firebase: {                       -> firebase config as prepared earlier in. used for user authentication
+    apiKey: '...', 
+    authDomain: '...',
+    databaseURL: '...',
+    projectId: '...',
+    storageBucket: '',
+    messagingSenderId: '...',
+    appId: '...'
+  }
+};
+```
+
+### Build Libraries
+
+1. cd to ./client/AngularMysqlSyncDemo
+2. run `ng build mysql-sync-common`
+3. run `ng build mysql-sync-client`
+4. copy mysql-sync-common (whole folder) from ./client/AngularMysqlSyncDemo/dist to ./server/mysql-sync-server/node_modules
+
+### Run Server
+
+1. start your MySQL Server (e.g. on Mac run `mysql.server start`)
+2. cd to ./server/mysql-sync-server
+3. run `npm run dev` resp. `npm run prod`
+
+### Run Client
+
+1. cd to ./client/AngularMysqlSyncDemo
+2. run `ng serve --open` (resp. build production code with `ng build --prod` and deploy it to your productive hosting provider)
+3. open client app in your browser on http://localhost:4200 (dev) or the adress of your provider, respectively
