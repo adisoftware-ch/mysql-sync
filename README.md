@@ -19,3 +19,63 @@ mysql-sync consists of:
 ## Running the Demo Application
 
 To run the demo application on your local machine, follow these steps:
+
+### Install and Prepare MySQL
+
+As mysql-sync handels MySQL database usage, a running instance of MySQL is required. Provide one on the local or any remote machine of your desire.
+
+Note: The server component has to be able to connect to MySQL. There are no direct database connections from client side!
+
+Prepare following tables:
+```
+
+```
+
+### Prepare node.js / Angular Projects
+
+1. Clone the git repo to a local directory of your desire. At top level, you find an eclispe project, if you wish to view or edit the code in eclipse.
+2. Open the project folder in a terminal:
+   - cd to ./server/mysql-sync-server
+   - run `npm init`
+   - cd to ./client/AngularMysqlSyncDemo
+   - run `npm init`
+
+### Prepare Google Firebase Project
+
+
+
+### Configure Server
+
+Server-side configuration resides at `./server/mysql-sync-server/src/assets/config.development.json`resp. `config.production.json`. Structure is as follows:
+```
+{
+    "server_port": 3000,        -> the port your websocket server will be listening on
+    "maxSocketListeners": 20,   -> max number of sockets
+    "secure": false,            -> if true, websocket connection will be handled over wss. provide key/cert in secureconfig
+    "secureconfig": {
+        "key": "",
+        "cert": "",
+        "passphrase": ""
+    },
+    "mysql": {
+        "connectionLimit"   : 10,               -> connection limit for mysql connection pool
+        "host"              : "localhost",      -> mysql host
+        "user"              : "...",            -> mysql database user to connect with
+        "password"          : "...",            -> password of mysql database user
+        "database"          : "friends"         -> database to be used
+    },
+    "firebaseAuth": {
+        "forceAuth"         : true,             -> if true, only authenticated users will be accepted
+        "emailVerification" : true,             -> id true, only users having verified there email address will be accepted
+        "firebase": {                           -> firebase config as prepared earlier in. used for user authentication
+            "apiKey"            : "...",
+            "authDomain"        : "...",
+            "databaseURL"       : "...",
+            "projectId"         : "...",
+            "storageBucket"     : "",
+            "messagingSenderId" : "...",
+            "appId":            "..."
+        }
+    }
+}
+```
