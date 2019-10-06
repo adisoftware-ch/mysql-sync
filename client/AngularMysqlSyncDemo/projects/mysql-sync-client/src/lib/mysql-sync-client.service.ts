@@ -12,6 +12,8 @@ import { delay } from 'rxjs/operators';
 
 import * as io from 'socket.io-client';
 
+import { ITransferObject, IDataObject, IKeyValue } from 'mysql-sync-common';
+
 export const MYSQL_SYNC_ENV = 'MYSQL_SYNC_ENV';
 
 export interface IMySqlSyncConfig {
@@ -26,25 +28,6 @@ export interface IMySqlSyncConfig {
       agent: boolean;
     }
   };
-}
-
-export interface IDataObject {
-  id: string;
-  version: string;
-}
-
-export interface ITransferObject {
-  table: string;
-  id?: string;
-  condition?: string;
-  attributes?: IKeyValue[];
-  value?: IDataObject;
-  values?: IDataObject[];
-}
-
-export interface IKeyValue {
-  key: string;
-  value: any;
 }
 
 @Injectable({
@@ -195,7 +178,7 @@ export class MysqlSyncClientService {
       this.usersConnected.next(msg);
     });
 
-    this.socket.on('error', (msg: any) => {
+    this.socket.on('error:msg', (msg: any) => {
       console.log(`receiving error message from server: ${msg}`);
 
       this.error.next(msg);
@@ -260,13 +243,14 @@ export class MysqlSyncClientService {
     }
   }
 
-  public delete(table: string, id: string) {
+  public delete(table: string, id: string, version: string) {
     if (this.socket && this.socket.connected) {
       console.log(`sending delete from ${table} with id = ${id}`);
 
       this.socket.emit('delete', {
         table,
-        id
+        id,
+        version
       });
     } else {
       console.warn('connection to mysql-sync server is not established. call to delete not possibe! table:', table + ', id: ' + id);
@@ -293,13 +277,14 @@ export class MysqlSyncClientService {
     return this.getObservable(msg).pipe(delay(100));
   }
 
-  public update(table: string, id: string, entity: any) {
+  public update(table: string, id: string, version: string, entity: any) {
     if (this.socket && this.socket.connected) {
       console.log(`sending update to ${table} with id = ${id}`);
 
       this.socket.emit('update', {
         table,
         id,
+        version,
         attributes : this.transformObjectToKVP(entity)
       });
     } else {

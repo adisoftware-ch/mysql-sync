@@ -6,6 +6,8 @@ import https = require('https');
 import fs = require('fs');
 import admin = require('firebase-admin');
 
+import { ITransferObject } from 'mysql-sync-common';
+
 import { environment } from '../environments/environment';
 import * as db from './db/db';
 import * as routes from './routes/routes';
@@ -54,12 +56,12 @@ export const start = (port: number): Promise<void> => {
             }
         })
     
-        socket.on('create', function(data: db.ITransferObject) {
+        socket.on('create', function(data: ITransferObject) {
             if (pool) {
                 db.createEntity(socket.client.request.uid, data, pool, function(error: any,result: any) {
                     if (error) {
                         console.error('error in db.create:', result);
-                        socket.emit('error', '' + result);
+                        socket.emit('error:msg', '' + result);
                     } else {
                         console.log('new ' + data.table + ' added!');
                         // On successful addition, emit event for all clients
@@ -75,12 +77,12 @@ export const start = (port: number): Promise<void> => {
             }
         })
 
-        socket.on('read', function(data: db.ITransferObject) {
+        socket.on('read', function(data: ITransferObject) {
             if (pool) {
                 db.queryEntity(socket.client.request.uid, data, pool, function(error: any,result: any) {
                     if (error) {
                         console.error('error in db.read:', result);
-                        socket.emit('error', '' + result);
+                        socket.emit('error:msg', '' + result);
                     } else {
                         console.log('read from ' + data.table + ':condition=' + data.condition);
                         console.log(result);
@@ -97,12 +99,12 @@ export const start = (port: number): Promise<void> => {
             }
         })
 
-        socket.on('update', function(data: db.ITransferObject) {
+        socket.on('update', function(data: ITransferObject) {
             if (pool) {
                 db.updateEntity(socket.client.request.uid, data, pool, function(error: any,result: any) {
                     if (error) {
                         console.error('error in db.update:', result);
-                        socket.emit('error', '' + result);
+                        socket.emit('error:msg', result);
                     } else {
                         console.log('updated ' + data.table + ':id=' + data.id);
                         // On successful addition, emit event for all clients
@@ -118,12 +120,12 @@ export const start = (port: number): Promise<void> => {
             }
         })
 
-        socket.on('delete', function(data: db.ITransferObject) {
+        socket.on('delete', function(data: ITransferObject) {
             if (pool) {
                 db.deleteEntity(socket.client.request.uid, data, pool, function(error: any,result: any) {
                     if (error) {
                         console.error('error in db.delete:', result);
-                        socket.emit('error', '' + result);
+                        socket.emit('error:msg', '' + result);
                     } else {
                         console.log('deleted ' + data.table + ':id=' + data.id);
                         // On successful addition, emit event for all clients

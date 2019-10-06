@@ -150,6 +150,41 @@
           }
         }
       }
+    },
+    "mysql-sync-common": {
+      "projectType": "library",
+      "root": "projects/mysql-sync-common",
+      "sourceRoot": "projects/mysql-sync-common/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/mysql-sync-common/tsconfig.lib.json",
+            "project": "projects/mysql-sync-common/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/mysql-sync-common/src/test.ts",
+            "tsConfig": "projects/mysql-sync-common/tsconfig.spec.json",
+            "karmaConfig": "projects/mysql-sync-common/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/mysql-sync-common/tsconfig.lib.json",
+              "projects/mysql-sync-common/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }},
   "defaultProject": "AngularMysqlSyncDemo"
 }

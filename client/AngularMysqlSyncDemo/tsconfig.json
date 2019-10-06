@@ -24,6 +24,12 @@
       ],
       "mysql-sync-client/*": [
         "dist/mysql-sync-client/*"
+      ],
+      "mysql-sync-common": [
+        "dist/mysql-sync-common"
+      ],
+      "mysql-sync-common/*": [
+        "dist/mysql-sync-common/*"
       ]
     }
   }

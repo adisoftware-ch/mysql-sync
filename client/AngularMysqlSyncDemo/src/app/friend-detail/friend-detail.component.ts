@@ -37,7 +37,7 @@ export class FriendDetailComponent implements OnInit {
     }
 
     save(): void {
-        this.friendService.updateFriend(this.friend.id, this.friend.name);
+        this.friendService.updateFriend(this.friend.id, this.friend.version, this.friend.name);
         this.goBack();
     }
 }

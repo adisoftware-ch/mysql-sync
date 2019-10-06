@@ -26,7 +26,7 @@ export class FriendsComponent implements OnInit {
     }
 
     deleteFriend(friend: IFriend): void {
-        this.friendService.deleteFriend(friend.id);
+        this.friendService.deleteFriend(friend.id, friend.version);
     }
 
 }

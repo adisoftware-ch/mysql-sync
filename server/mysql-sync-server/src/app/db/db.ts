@@ -1,23 +1,6 @@
 import mysql = require('mysql');
 
-export interface IDataObject {
-    id: string;
-    version: string;
-}
-
-export interface ITransferObject {
-    table: string;
-    id?: string;
-    condition?: string;
-    attributes?: IKeyValue[];
-    value?: IDataObject;
-    values?: IDataObject[];
-}
-
-export interface IKeyValue {
-    key: string;
-    value: any;
-}
+import { IKeyValue, ITransferObject } from 'mysql-sync-common';
 
 export const createEntity = function (uid: string, data: ITransferObject, pool: mysql.Pool, callback: any) {
     // if authentication is turned on, store uid with every new record
@@ -117,27 +100,33 @@ export const updateEntity = function (uid: string, data: ITransferObject, pool: 
             console.error(err);
             callback(true, err);
         } else if (data.id) {
-            getUpdateQuery(uid, data, connection, function(err: boolean, result: any) {
-                if (!err) {
-                    var sqlQuery = result;
+            checkVersion(data, connection, function(valid: boolean, msg: string) {
+                if (valid) {
+                    getUpdateQuery(uid, data, connection, function(err: boolean, result: any) {
+                        if (!err) {
+                            var sqlQuery = result;
 
-                    console.info('db.update with sql:', sqlQuery);
+                            console.info('db.update with sql:', sqlQuery);
 
-                    connection.query(sqlQuery, function (err, _RESULT) {
-                        if (err) {
-                            callback(true, err);
-                        } else if (data.id) {
-                            sqlQuery = 'SELECT * FROM ?? WHERE ID = ?';
-                            var inserts = [data.table, data.id];
-                            sqlQuery = mysql.format(sqlQuery, inserts);
-                            connection.query(sqlQuery)
-                                .on('result', function (data) {
-                                    callback(false, data);
-                                })
+                            connection.query(sqlQuery, function (err, _RESULT) {
+                                if (err) {
+                                    callback(true, err);
+                                } else if (data.id) {
+                                    sqlQuery = 'SELECT * FROM ?? WHERE ID = ?';
+                                    var inserts = [data.table, data.id];
+                                    sqlQuery = mysql.format(sqlQuery, inserts);
+                                    connection.query(sqlQuery)
+                                        .on('result', function (data) {
+                                            callback(false, data);
+                                        })
+                                }
+                            });
+                        } else {
+                            callback(true, result);
                         }
                     });
                 } else {
-                    callback(true, result);
+                    callback(true, msg);
                 }
             });
         }
@@ -150,26 +139,55 @@ export const deleteEntity = async function (uid: string, data: ITransferObject, 
             console.error(err);
             callback(true, err);
         } else if (data.id) {
-            getDeleteQuery(uid, data, connection, function (err: boolean, result: any) {
-                if (!err) {
-                    var sqlQuery = result;
+            checkVersion(data, connection, function(valid: boolean, msg: string) {
+                if (valid) {
+                    getDeleteQuery(uid, data, connection, function (err: boolean, result: any) {
+                        if (!err) {
+                            var sqlQuery = result;
 
-                    console.info('db.delete with sql:', sqlQuery);
+                            console.info('db.delete with sql:', sqlQuery);
 
-                    connection.query(sqlQuery, function (err, _RESULT) {
-                        if (err) {
-                            callback(true, err);
+                            connection.query(sqlQuery, function (err, _RESULT) {
+                                if (err) {
+                                    callback(true, err);
+                                } else {
+                                    callback(false, null);
+                                }
+                            });
                         } else {
-                            callback(false, null);
+                            callback(true, result);
                         }
                     });
                 } else {
-                    callback(true, result);
+                    callback(true, msg);
                 }
             });
         }
     });
 };
+
+const checkVersion = function(data: ITransferObject, connection: mysql.PoolConnection, callback: any) {
+    if (data.id && data.version) {
+        var sqlQuery = 'SELECT count(id) as no, version FROM ?? WHERE id=?';
+        var inserts = [data.table, data.id];
+
+        sqlQuery = mysql.format(sqlQuery, inserts);
+
+        console.info('checkVersion:', sqlQuery);
+
+        connection.query(sqlQuery).on('result', function (result) {
+            if (result.no == 0) {
+                return callback(false, 'checkVersion: object might habe been deleted. please refresh');
+            } else if (new Date(data.version ? data.version : 0).getTime() < new Date(result.version).getTime()) {
+                return callback(false, 'checkVersion: object is oudated. please refresh');
+            } else {
+                return callback(true, '');
+            }
+        });  
+    } else {
+        callback(false, 'checkVersion: either id or version are not set on TransferObject');
+    }
+}
 
 const checkCreate = function(uid: string, table: string, connection: mysql.PoolConnection, callback: any) {
     getConstraintQuery('create', table, connection, function(err: boolean, result: any) {
@@ -218,12 +236,15 @@ const getReadQuery = function(uid: string, data: ITransferObject, connection: my
 
 const getUpdateQuery = function(uid: string, data: ITransferObject, connection: mysql.PoolConnection, callback: any) {
     if (data.id) {
-        var sqlQuery = 'UPDATE ?? SET ';
-        var inserts = [data.table];
+        var sqlQuery = 'UPDATE ?? SET version=?';
+        var inserts = [data.table, new Date()];
 
         for (let i = 0; data.attributes && i < data.attributes.length; i++) {
-            sqlQuery = sqlQuery + (i > 0 ? ',' : '') + data.attributes[i].key + '=?';
-            inserts.push(data.attributes[i].value);
+            // version cannot be updated manually
+            if (data.attributes[i].key.toLowerCase() !== 'version') {
+                sqlQuery = sqlQuery + ',' + data.attributes[i].key + '=?';
+                inserts.push(data.attributes[i].value);
+            }
         }
         sqlQuery = sqlQuery + 'WHERE id=?'
         inserts.push(data.id);

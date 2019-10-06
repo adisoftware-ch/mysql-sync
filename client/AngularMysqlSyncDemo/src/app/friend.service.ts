@@ -1,6 +1,7 @@
 import { Observable} from 'rxjs';
 
-import { MysqlSyncClientService, IDataObject } from 'mysql-sync-client';
+import { MysqlSyncClientService } from 'mysql-sync-client';
+import { IDataObject } from 'mysql-sync-common';
 
 // @todo:
 // Firebase Authentication Token zur Server-seitigen Authentifizierung mitgeben.
@@ -36,16 +37,16 @@ export class FriendService {
     });
   }
 
-  public deleteFriend(id: string) {
-    this.db.delete('friend', id);
+  public deleteFriend(id: string, version: string) {
+    this.db.delete('friend', id, version);
   }
 
   public readFriends(conditionclause: string): Observable<IFriend[]> {
     return this.db.read('friend', conditionclause) as Observable<IFriend[]>;
   }
 
-  public updateFriend(id: string, name: string) {
-    this.db.update('friend', id, {
+  public updateFriend(id: string, version: string, name: string) {
+    this.db.update('friend', id, version, {
       name
     });
   }
