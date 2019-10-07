@@ -1,6 +1,5 @@
 # mysql-sync
 
-- [mysql-sync](#mysql-sync)
   * [Intention](#intention)
   * [Architectural Overview](#architectural-overview)
   * [Running the Demo Application](#running-the-demo-application)
