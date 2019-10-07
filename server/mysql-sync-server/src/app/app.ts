@@ -73,7 +73,7 @@ export const start = (port: number): Promise<void> => {
                     }
                 });
             } else {
-                socket.emit('error', 'database connection pool not initialized');
+                socket.emit('error:msg', 'database connection pool not initialized');
             }
         })
 
@@ -85,7 +85,6 @@ export const start = (port: number): Promise<void> => {
                         socket.emit('error:msg', '' + result);
                     } else {
                         console.log('read from ' + data.table + ':condition=' + data.condition);
-                        console.log(result);
                         // On successful addition, emit event for requesting client
                         socket.emit('read:response', {
                             table: data.table,
@@ -95,7 +94,7 @@ export const start = (port: number): Promise<void> => {
                     }
                 });
             } else {
-                socket.emit('error', 'database connection pool not initialized');
+                socket.emit('error:msg', 'database connection pool not initialized');
             }
         })
 
@@ -116,7 +115,7 @@ export const start = (port: number): Promise<void> => {
                     }
                 });
             } else {
-                socket.emit('error', 'database connection pool not initialized');
+                socket.emit('error:msg', 'database connection pool not initialized');
             }
         })
 
@@ -137,7 +136,7 @@ export const start = (port: number): Promise<void> => {
                     }
                 });
             } else {
-                socket.emit('error', 'database connection pool not initialized');
+                socket.emit('error:msg', 'database connection pool not initialized');
             }
         })
 
@@ -157,9 +156,8 @@ async function verifyToken(socket: socketIo.Socket, next: any) {
         try {
             const decodedToken = await admin.auth().verifyIdToken(token);
             if (decodedToken) {
-                console.log('user authenticated:', decodedToken);
-
                 if (!environment().firebaseAuth.emailVerification || decodedToken.email_verified) {
+                    console.log('User successfully validated!', decodedToken.uid);
                     // store uid for further usage in processing the request
                     socket.client.request.uid = decodedToken.uid;
                     next();
