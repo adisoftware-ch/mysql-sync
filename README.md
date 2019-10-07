@@ -6,7 +6,7 @@ mysql-sync brings realtime behavior to your MySQL Database. Working with Google 
 
 ## Architectural Overview
 
-![Architectural Overview](architecure_overview_mysql-sync.jpg)
+![Architectural Overview](https://github.com/adisoftware-ch/mysql-sync/blob/master/architecture_mysql-sync.jpg?raw=true)
 
 ## Project Structure
 
