@@ -183,3 +183,8 @@ export const environment = {
 1. cd to ./client/AngularMysqlSyncDemo
 2. run `ng serve --open` (resp. build production code with `ng build --prod` and deploy it to your productive hosting provider)
 3. open client app in your browser on http://localhost:4200 (dev) or the adress of your provider, respectively
+
+## Todo
+
+- [ ] Provide working version of the demo app on adisoftware.ch
+- [ ] Provide a better description for secure config
