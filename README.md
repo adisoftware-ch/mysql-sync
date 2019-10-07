@@ -4,6 +4,10 @@
 
 mysql-sync brings realtime behavior to your MySQL Database. Working with Google Firebase/Firestore, I noticed that web-developers are looking for some similar realtime behavior on their existing MySQL Database.
 
+## Architectural Overview
+
+![Architectural Overview](architecure_overview_mysql-sync.jpg)
+
 ## Project Structure
 
 mysql-sync consists of:
