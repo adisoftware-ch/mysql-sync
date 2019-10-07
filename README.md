@@ -1,5 +1,21 @@
 # mysql-sync
 
+- [mysql-sync](#mysql-sync)
+  * [Intention](#intention)
+  * [Architectural Overview](#architectural-overview)
+  * [Running the Demo Application](#running-the-demo-application)
+    + [Install and Prepare MySQL](#install-and-prepare-mysql)
+    + [Prepare node.js / Angular Projects](#prepare-nodejs---angular-projects)
+    + [Prepare Google Firebase Project](#prepare-google-firebase-project)
+    + [Configure Server](#configure-server)
+    + [Configure Client](#configure-client)
+    + [Build Libraries](#build-libraries)
+    + [Run Server](#run-server)
+    + [Run Client](#run-client)
+  * [Todo](#todo)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 ## Intention
 
 mysql-sync brings realtime behavior to your MySQL Database. Working with Google Firebase/Firestore, I noticed that web-developers are looking for some similar realtime behavior on their existing MySQL Database.
