@@ -1,27 +1,20 @@
 # AngularMysqlSyncDemo
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.0.2.
+## Intention
 
-## Development server
+AngularNG demo application for usage of mysql-sync. Besides the demo, this project is intended for providing the required npm libraries [mysql-sync-client](./projects/mysql-sync-client/README.md) and [mysql-sync-common](./projects/mysql-sync-common/README.md). In future, it will additionally be extended for integration testing of mysql-sync.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+## Building and Running the Application
 
-## Code scaffolding
+See [mysql-sync](../../README.md) for building and running mysql-sync
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Running tests
 
-## Build
+Currently just the autmatically generated tests are available for the demo application.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+- Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+- Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
 
-## Running unit tests
+## Todo
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+- [ ] Add unit- and integration tests

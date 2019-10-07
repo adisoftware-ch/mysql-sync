@@ -1,24 +1,13 @@
 # MysqlSyncCommon
 
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.0.3.
+## Intention
 
-## Code scaffolding
+npm library for usage of mysql-sync from AngluarNG or ionic applications. The library provides the interface definitions for data exchange between mysql-sync-server and mysql-sync-client. It's therefore required to be present in node_modules of the client- as well as of the server-project.
 
-Run `ng generate component component-name --project mysql-sync-common` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project mysql-sync-common`.
-> Note: Don't forget to add `--project mysql-sync-common` or else it will be added to the default project in your `angular.json` file. 
+## Building the Library
 
-## Build
+- Run `ng build mysql-sync-common` from the project root directory (./client/AngularMysqlSyncDemo)
+- Copy `./client/AngularMysqlSyncDemo/dist/mysql-sync-common` (whole folder) to `node_modules` of your AngularNG or ionic project
+- Copy `./client/AngularMysqlSyncDemo/dist/mysql-sync-common` (whole folder) to `node_modules` of your mysql-sync-server project
 
-Run `ng build mysql-sync-common` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Publishing
-
-After building your library with `ng build mysql-sync-common`, go to the dist folder `cd dist/mysql-sync-common` and run `npm publish`.
-
-## Running unit tests
-
-Run `ng test mysql-sync-common` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+## Todo

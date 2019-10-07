@@ -1,24 +1,14 @@
 # MysqlSyncClient
 
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.0.3.
+## Intention
 
-## Code scaffolding
+npm library for usage of mysql-sync from AngluarNG or ionic applications.
 
-Run `ng generate component component-name --project mysql-sync-client` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project mysql-sync-client`.
-> Note: Don't forget to add `--project mysql-sync-client` or else it will be added to the default project in your `angular.json` file. 
+## Building the Library
 
-## Build
+- Run `ng build mysql-sync-client` from the project root directory (./client/AngularMysqlSyncDemo)
+- Copy `./client/AngularMysqlSyncDemo/dist/mysql-sync-client` (whole folder) to `node_modules` of your AngularNG or ionic project
 
-Run `ng build mysql-sync-client` to build the project. The build artifacts will be stored in the `dist/` directory.
+## Todo
 
-## Publishing
-
-After building your library with `ng build mysql-sync-client`, go to the dist folder `cd dist/mysql-sync-client` and run `npm publish`.
-
-## Running unit tests
-
-Run `ng test mysql-sync-client` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+- [ ] Add offline functionality
