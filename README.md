@@ -6,10 +6,6 @@ mysql-sync brings realtime behavior to your MySQL Database. Working with Google 
 
 ## Architectural Overview
 
-![Architectural Overview](https://github.com/adisoftware-ch/mysql-sync/blob/master/architecture_mysql-sync.jpg?raw=true)
-
-## Project Structure
-
 mysql-sync consists of:
 
 - [mysql-sync-server](./server/README.md): a node.js / Express server providing the realtime behavior for CRUD (create, read, update, delete) applications based on MySQL database.
@@ -19,6 +15,8 @@ mysql-sync consists of:
 - [mysql-sync-common](./client/AngularMysqlSyncDemo/projects/mysql-sync-common/README.md): npm-library which provides the common interfaces of the data- and transfer-objects used by client and server.
 
 - [AngularMysqlSyncDemo](./client/AngularMysqlSyncDemo/README.md): Demo CRUD application written in AngularNG. It's derived from the popular Tour of Heros application of the official Angular Tutorial.
+
+![Architectural Overview](https://github.com/adisoftware-ch/mysql-sync/blob/master/architecture_mysql-sync.jpg?raw=true)
 
 ## Running the Demo Application
 
