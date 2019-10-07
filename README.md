@@ -33,13 +33,13 @@ Additionally, mysql-sync server works with some simple security rules that have 
 
 mysql-sync consists of:
 
-- [mysql-sync-server](./server/mysql-sync-server/README.md): a node.js / Express server providing the realtime behavior for CRUD (create, read, update, delete) applications based on MySQL database.
+- [mysql-sync-server](./server/mysql-sync-server/README.md): a node.js / Express server providing the realtime behavior for CRUD (create, read, update, delete) applications based on MySQL database. **code base: ./server/mysql-sync-server**
 
-- [mysql-sync-client](./client/AngularMysqlSyncDemo/projects/mysql-sync-client/README.md): npm-library which handels the communication to the server. It provides the client-side CRUD interface as well as the possibility to access the data objects as rxjs Observables. The interface is designed as an Injectable Angular service for easy integration in AngularNG or ionic apps.
+- [mysql-sync-client](./client/AngularMysqlSyncDemo/projects/mysql-sync-client/README.md): npm-library which handels the communication to the server. It provides the client-side CRUD interface as well as the possibility to access the data objects as rxjs Observables. The interface is designed as an Injectable Angular service for easy integration in AngularNG or ionic apps. **code base: ./client/AngularMysqlSyncDemo/projects/mysql-sync-client**
 
-- [mysql-sync-common](./client/AngularMysqlSyncDemo/projects/mysql-sync-common/README.md): npm-library which provides the common interfaces of the data- and transfer-objects used by client and server.
+- [mysql-sync-common](./client/AngularMysqlSyncDemo/projects/mysql-sync-common/README.md): npm-library which provides the common interfaces of the data- and transfer-objects used by client and server. **code base: ./client/AngularMysqlSyncDemo/projects/mysql-sync-common**
 
-- [AngularMysqlSyncDemo](./client/AngularMysqlSyncDemo/README.md): Demo CRUD application written in AngularNG. It's derived from the popular Tour of Heros application of the official Angular Tutorial.
+- [AngularMysqlSyncDemo](./client/AngularMysqlSyncDemo/README.md): Demo CRUD application written in AngularNG. It's derived from the popular Tour of Heros application of the official Angular Tutorial. **code base: ./client/AngularMysqlSyncDemo**
 
 ![Architectural Overview](https://github.com/adisoftware-ch/mysql-sync/blob/master/architecture_mysql-sync.jpg?raw=true)
 
@@ -105,7 +105,7 @@ This behavior is not acceptable in production. But for the case of simplicity, t
 
 This is just a very short description of the steps required to configure the demo application. It's strongly recommended to check Googles latest documentation on configuring Firebase.
 
-1. Go to [https://firebase.google.com](https://firebase.google.com) and register a free Firebase account (Spark Plan)
+1. Using your web browser, go to [https://firebase.google.com](https://firebase.google.com) and register a free Firebase account (Spark Plan)
 2. Access Firebase Console at [https://console.firebase.google.com](https://console.firebase.google.com)
 3. Create a new Firebase Project (e.g. `mysql-sync-demo`)
 4. Go to `Authentication` => `Authentication Method` and enable E-Mail/Password Authentication. Ensure that `Requires E-Mail Verification` is checked.
@@ -185,7 +185,7 @@ export const environment = {
 1. cd to ./client/AngularMysqlSyncDemo
 2. run `ng build mysql-sync-common`
 3. run `ng build mysql-sync-client`
-4. copy mysql-sync-common (whole folder) from ./client/AngularMysqlSyncDemo/dist to ./server/mysql-sync-server/node_modules
+4. copy `./client/AngularMysqlSyncDemo/dist/mysql-sync-common` (whole folder) to `./server/mysql-sync-server/node_modules`
 
 ### Run Server
 
