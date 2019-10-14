@@ -35,8 +35,17 @@ mysql-sync-server is written as a TypeScript application. It's structure is simp
 
 ### CRUD API (over websocket)
 
+The table provides an overview of the events that are handled over the websocket interface. For more Information about usage of especially the required ITransferObject, see code.
+
 | Socket Event | Description | Answer (Event) | BC | SI |
 | --- | --- | --- | --- | --- |
+| connection | On connect and disconnect events, the number of active clients is broadcasted to all listeners | sockets:connected | X | - |
+| init | With the `init` event, mysql-sync-server is triggered to initialize its database connection if not yet completed | silent | - | - |
+| create | Create new entity as described in the transmitted ITransferObject. Response contains the new element including the generated ID. | create:response | X | - |
+| read | Reads all entities according transmitted ITransferObject (`table` and `condition`). Result is returned as an Array in parameter `values`. | read:response | - | X |
+| update | Updates the entity as described in transmitted ITransferObject. Returns the updated entity in parameter `values`. | update:response | X | - |
+| delete | Deletes the entity according `id` in transmitted ITransferObject. Answers with a create:response which triggers the clients to reload their listings. See todo. | **create:response** | X | - |
+| all | If an error happens, all CRUD methods answer with error:msg | error:msg | - | X |
 
 ### Exception Handling
 
@@ -91,5 +100,28 @@ async function verifyToken(socket: socketIo.Socket, next: any) {
 ```
 
 ### Data Manipulation Authorisation (security rules)
+Authorisation for data access and data manipulation is checked on three levels:
+
+1) Check of user authentication. If configured, only authenticated users have access for any operation.
+2) Check of object versions for UPDATE and DELETE. Both operations are only possible, if the version the user's operating with is the same than the version that's currently stored in database.
+3) User Authorisation is checked on rules that can be defined on table level.
+
+Rules are defined in form of SQL Statements in table `rules`:
+- `table`: the table, the rules are valid for
+- `create`, `read`, `update`. `delete`: the rule-queries as described afterwards
+
+When creating a new entity and if user authentication is enabled, the UID is automatically inserted in a field called `creator`. So, for checking the rights on update and delete, a rule query like the following is possible:
+```
+select id from friend where creator=?
+```
+
+| Method | Granted if | Parameters |
+| --- | --- | --- |
+| CREATE | Query return at least one result | UID of currently logged in user |
+| READ | ID resulting from read query is also returned from rule query | UID of currently logged in user |
+| UPDATE, DELETE | Rule query returns ID of entity to be updated or deleted | UID of currently logged in user |
 
 ## Todo
+
+- [ ] Readability: Refactor answer of `delete` to use a new `delete:response` instead of the existing `create:response`
+- [ ] Read operation is not proof against SQL injection. Need to refactor handling of condition clause
