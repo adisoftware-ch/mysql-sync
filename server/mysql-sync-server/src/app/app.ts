@@ -128,10 +128,12 @@ export const start = (port: number): Promise<void> => {
                     } else {
                         console.log('deleted ' + data.table + ':id=' + data.id);
                         // On successful addition, emit event for all clients
-                        io.sockets.emit('create:response', {
+                        io.sockets.emit('delete:response', {
                             table: data.table,
                             condition: 'create',
-                            value: result
+                            value: {
+                                id: data.id
+                            }
                         });
                     }
                 });

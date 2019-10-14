@@ -123,5 +123,5 @@ select id from friend where creator=?
 
 ## Todo
 
-- [ ] Readability: Refactor answer of `delete` to use a new `delete:response` instead of the existing `create:response`
+- [X] Readability: Refactor answer of `delete` to use a new `delete:response` instead of the existing `create:response`
 - [ ] Read operation is not proof against SQL injection. Need to refactor handling of condition clause
