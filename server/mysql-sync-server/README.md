@@ -112,7 +112,7 @@ Rules are defined in form of SQL Statements in table `rules`:
 
 When creating a new entity and if user authentication is enabled, the UID is automatically inserted in a field called `creator`. So, for checking the rights on update and delete, a rule query like the following is possible:
 ```
-select id from friend where creator=?
+select id from friend where creator=? 
 ```
 
 | Method | Granted if | Parameters |
