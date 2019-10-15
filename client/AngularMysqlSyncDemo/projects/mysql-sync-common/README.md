@@ -1,5 +1,11 @@
 # MysqlSyncCommon
 
+  * [Intention](#intention)
+  * [Building the Library](#building-the-library)
+  * [Todo](#todo)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 ## Intention
 
 npm library for usage of mysql-sync from AngluarNG or ionic applications. The library provides the interface definitions for data exchange between mysql-sync-server and mysql-sync-client. It's therefore required to be present in node_modules of the client- as well as of the server-project.

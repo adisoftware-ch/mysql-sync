@@ -1,6 +1,6 @@
 import mysql = require('mysql');
 
-import { IKeyValue, ITransferObject } from 'mysql-sync-common';
+import { IKeyValue, ITransferObject, IConditionClause } from 'mysql-sync-common';
 
 export const createEntity = function (uid: string, data: ITransferObject, pool: mysql.Pool, callback: any) {
     // if authentication is turned on, store uid with every new record
@@ -218,8 +218,23 @@ const checkCreate = function(uid: string, table: string, connection: mysql.PoolC
 }
 
 const getReadQuery = function(uid: string, data: ITransferObject, connection: mysql.PoolConnection, callback: any) {
-    var sqlQuery = 'SELECT * FROM ??' + (data.condition ? ' WHERE ' + data.condition : '');
+    var sqlQuery = 'SELECT * FROM ??' + (data.condition ? ' WHERE ' : '');
     var inserts = [data.table];
+
+    if (data.condition) {
+      for (let i = 0; i < data.condition.length; i++) {
+        const current = data.condition[i];
+        
+        sqlQuery = sqlQuery +
+          (current.operator ? current.operator : '') +
+          (current.startclause ? current.startclause : '') +
+          '??' + current.comparator + '?' +
+          (current.endclause ? current.endclause : '');
+        
+        inserts.push(current.key);
+        inserts.push(current.value);
+      }
+    }
 
     getConstraintQuery('read', data.table, connection, function(err: boolean, result: any) {
         if (!err) {

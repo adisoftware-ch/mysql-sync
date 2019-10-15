@@ -1,5 +1,13 @@
 # MysqlSyncClient
 
+  * [Intention](#intention)
+  * [Building the Library](#building-the-library)
+  * [CRUD Methods](#crud-methods)
+  * [Additional public Methods](#additional-public-methods)
+  * [Todo](#todo)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 ## Intention
 
 npm library for usage of mysql-sync from AngluarNG or ionic applications. It encapsulates the websocket conversations complexity from the client via simple API methods. It provides Observables for the clients to be notified on each others changes.
@@ -16,11 +24,35 @@ public create(table: string, entity: any)
 Creates a new entity in table `table`. `entity` is expected to be a simple JSON object according the table's structure. An error will be thrown, otherwise.
 
 ```
-public read(table: string, conditionclause: string): Observable<IDataObject[]>
+public read(table: string, conditionclause: IConditionClause[]): Observable<IDataObject[]>
 ```
 Reades from `table` according the `conditionclause`. Returns an Observable which allows clients to listen for changes on the underlying record set. The Observable will be updated by the library on CREATE, UPDATE, DELETE calls from any client.
 
-**Attention:** Currently this method is not proof against SQL Injection and requires refactoring of the handling of the condition-clause.
+The real SQL condition clause (what follows the `WHEN`) is build upon the elements of `IConditionClause[]`. This type is defined as follows:
+
+```
+export interface IConditionClause extends IKeyValue {
+  operator?: operator;          -> the operator connecting this part of the clause with the preceding. See enum.
+  startclause?: boolean;        -> if true, a starting clause '(' is placed after the operator.
+  comparator: comparator;       -> the comparator to compare 'key' and 'value'. See enum.
+  endclause?: boolean;          -> if true, an end clause ')' is placed after 'value'.
+}
+
+export enum comparator {
+  EQ = '=',
+  ST = '<',
+  BT = '>',
+  ST_EQ = '<=',
+  BT_EQ = '>='
+}
+
+export enum operator {
+  AND = ' AND ',
+  OR = ' OR '
+}
+```
+
+This rather complex structure is required to be proof against SQL injection. mysql-sync-server renders the `IconditionClause[]` to an SQL WHEN statement. All keys and values will be escaped; No other statements will be allowed in comparator and operator fields than defined by the enums.
 
 ```
 public update(table: string, id: string, version: string, entity: any)
@@ -54,4 +86,4 @@ Passes the Firebase Authentication token to the server component. Calling this m
 ## Todo
 
 - [ ] Add offline functionality
-- [ ] Refactor method `read` regarding safety against SQL injection
+- [X] Refactor method `read` regarding safety against SQL injection

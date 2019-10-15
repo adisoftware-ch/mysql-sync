@@ -12,7 +12,7 @@ export interface ITransferObject {
   table: string;
   id?: string;
   version?: number;
-  condition?: string;
+  condition?: IConditionClause[];
   attributes?: IKeyValue[];
   value?: IDataObject;
   values?: IDataObject[];
@@ -21,4 +21,24 @@ export interface ITransferObject {
 export interface IKeyValue {
   key: string;
   value: any;
+}
+
+export interface IConditionClause extends IKeyValue {
+  operator?: operator;
+  startclause?: boolean;
+  comparator: comparator;
+  endclause?: boolean;
+}
+
+export enum comparator {
+  EQ = '=',
+  ST = '<',
+  BT = '>',
+  ST_EQ = '<=',
+  BT_EQ = '>='
+}
+
+export enum operator {
+  AND = ' AND ',
+  OR = ' OR '
 }

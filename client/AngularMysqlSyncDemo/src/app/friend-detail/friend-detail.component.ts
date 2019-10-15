@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 
 import { FriendService, IFriend } from '../friend.service';
+import { comparator } from 'mysql-sync-common';
 
 @Component({
     selector: 'app-friend-detail',
@@ -24,8 +25,11 @@ export class FriendDetailComponent implements OnInit {
 
     private getFriend(): void {
         const id = +this.route.snapshot.paramMap.get('id');
-        this.friendService.readFriends('id=' + id)
-            .subscribe(friends => {
+        this.friendService.readFriends([{
+            key: 'id',
+            value: id,
+            comparator: comparator.EQ
+        }]).subscribe(friends => {
                 if (friends.length > 0) {
                     this.friend = friends[0];
                 }

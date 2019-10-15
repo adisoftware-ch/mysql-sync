@@ -1,3 +1,17 @@
+# mysql-sync-server
+
+  * [Intention](#intention)
+  * [Building and Running the Server](#building-and-running-the-server)
+  * [Implementation Details](#implementation-details)
+    + [The Server Application](#the-server-application)
+    + [CRUD API (over websocket)](#crud-api--over-websocket-)
+    + [Exception Handling](#exception-handling)
+    + [Firebase Authentication](#firebase-authentication)
+    + [Data Manipulation Authorisation (security rules)](#data-manipulation-authorisation--security-rules-)
+  * [Todo](#todo)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 ## Intention
 
 websocket server that provides a realtime, NoSQL-like API to your MySQL database.
@@ -124,4 +138,4 @@ select id from friend where creator=?
 ## Todo
 
 - [X] Readability: Refactor answer of `delete` to use a new `delete:response` instead of the existing `create:response`
-- [ ] Read operation is not proof against SQL injection. Need to refactor handling of condition clause
+- [X] Read operation is not proof against SQL injection. Need to refactor handling of condition clause

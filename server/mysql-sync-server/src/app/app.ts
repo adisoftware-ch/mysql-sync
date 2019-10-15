@@ -84,7 +84,7 @@ export const start = (port: number): Promise<void> => {
                         console.error('error in db.read:', result);
                         socket.emit('error:msg', '' + result);
                     } else {
-                        console.log('read from ' + data.table + ':condition=' + data.condition);
+                        console.log('read from ' + data.table + ':condition=' + data.condition + ', result: ', result);
                         // On successful addition, emit event for requesting client
                         socket.emit('read:response', {
                             table: data.table,

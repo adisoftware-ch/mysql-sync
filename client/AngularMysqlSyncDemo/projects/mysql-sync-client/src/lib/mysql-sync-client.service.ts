@@ -12,7 +12,8 @@ import { delay } from 'rxjs/operators';
 
 import * as io from 'socket.io-client';
 
-import { ITransferObject, IDataObject, IKeyValue } from 'mysql-sync-common';
+import { ITransferObject, IDataObject, IKeyValue, IConditionClause } from 'mysql-sync-common';
+import { stringify } from '@angular/compiler/src/util';
 
 export const MYSQL_SYNC_ENV = 'MYSQL_SYNC_ENV';
 
@@ -39,6 +40,8 @@ export class MysqlSyncClientService {
 
   private objectMap: Map<string, Array<IDataObject>>;
 
+  private conditionMap: Map<string, Array<IConditionClause>>;
+
   private observableMap: Map<string, Observable<IDataObject[]>>;
 
   private usersConnected: BehaviorSubject<number>;
@@ -54,6 +57,7 @@ export class MysqlSyncClientService {
   constructor(@Inject(MYSQL_SYNC_ENV) environment: IMySqlSyncConfig) {
 
     this.objectMap = new Map<string, Array<IDataObject>>();
+    this.conditionMap = new Map<string, Array<IConditionClause>>();
     this.observableMap = new Map<string, Observable<IDataObject[]>>();
 
     this.usersConnected = new BehaviorSubject(0);
@@ -140,10 +144,7 @@ export class MysqlSyncClientService {
       // alle via read gelesene calls aktualisieren.
       // wir wissen nicht, welche conditions das neu erstellte element enthalten.
       this.objectMap.forEach((_VALUE, key) => {
-        const index = key.indexOf(':');
-        const condition = key.substring(index + 1);
-
-        this.read(msg.table, condition === 'null' ? null : condition);
+        this.read(msg.table, this.conditionMap.get(key));
       });
     });
 
@@ -186,13 +187,14 @@ export class MysqlSyncClientService {
   }
 
   private getObjectArray(msg: ITransferObject): Array<IDataObject> {
-    const key = msg.table + ':' + msg.condition;
+    const key = msg.table + ':' + this.transformConditionClauseToString(msg.condition);
     let objects = this.objectMap.get(key);
 
     // create new observable, if not yet contained
     if (!objects) {
       objects = new Array<any>();
       this.objectMap.set(key, objects);
+      this.conditionMap.set(key, msg.condition);
       this.observableMap.set(key, of(objects));
     }
 
@@ -200,7 +202,7 @@ export class MysqlSyncClientService {
   }
 
   private getObservable(msg: ITransferObject): Observable<IDataObject[]> {
-    const key = msg.table + ':' + msg.condition;
+    const key = msg.table + ':' + this.transformConditionClauseToString(msg.condition);
     let observable = this.observableMap.get(key);
 
     if (!observable) {
@@ -226,6 +228,23 @@ export class MysqlSyncClientService {
     return kvp;
   }
 
+  private transformConditionClauseToString(conditionclause: IConditionClause[]): string {
+    let result = '';
+
+    if (conditionclause && conditionclause != null) {
+      for (let i = 0; i < conditionclause.length; i++) {
+        const current = conditionclause[i];
+        result = result +
+          (current.operator ? current.operator : '') +
+          (current.startclause ? current.startclause : '') +
+          current.key + current.comparator + current.value +
+          (current.endclause ? current.endclause : '');
+      }
+    }
+
+    return result;
+  }
+
   // ---
   // CRUD
   // ---
@@ -243,7 +262,7 @@ export class MysqlSyncClientService {
     }
   }
 
-  public delete(table: string, id: string, version: string) {
+  public delete(table: string, id: string, version: number) {
     if (this.socket && this.socket.connected) {
       console.log(`sending delete from ${table} with id = ${id}`);
 
@@ -257,7 +276,7 @@ export class MysqlSyncClientService {
     }
   }
 
-  public read(table: string, conditionclause: string): Observable<IDataObject[]> {
+  public read(table: string, conditionclause: IConditionClause[]): Observable<IDataObject[]> {
     const msg = {
       table,
       condition: conditionclause
@@ -277,7 +296,7 @@ export class MysqlSyncClientService {
     return this.getObservable(msg).pipe(delay(100));
   }
 
-  public update(table: string, id: string, version: string, entity: any) {
+  public update(table: string, id: string, version: number, entity: any) {
     if (this.socket && this.socket.connected) {
       console.log(`sending update to ${table} with id = ${id}`);
 
