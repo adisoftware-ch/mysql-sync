@@ -19,7 +19,7 @@
     "firebase-admin": "^8.6.0",
     "mysql": "^2.17.1",
     "nodemailer": "^6.3.0",
-    "socket.io": "^2.2.0",
+    "socket.io": "^2.4.0",
     "ts-node-dev": "^1.0.0-pre.42",
     "typescript": "^3.6.3"
   }
